@@ -1,20 +1,40 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { Platform } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createDrawerNavigator } from '@react-navigation/drawer';
 
-export default function App() {
+import PlanetsScreen from './screens/PlanetsScreen';
+import FilmsScreen from './screens/FilmsScreen';
+import SpaceshipsScreen from './screens/SpaceshipsScreen';
+
+const Tab = createBottomTabNavigator();
+const Drawer = createDrawerNavigator();
+
+function Tabs() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <Tab.Navigator>
+      <Tab.Screen name="Planets" component={PlanetsScreen} />
+      <Tab.Screen name="Films" component={FilmsScreen} />
+      <Tab.Screen name="Spaceships" component={SpaceshipsScreen} />
+    </Tab.Navigator>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+function Drawers() {
+  return (
+    <Drawer.Navigator>
+      <Drawer.Screen name="Planets" component={PlanetsScreen} />
+      <Drawer.Screen name="Films" component={FilmsScreen} />
+      <Drawer.Screen name="Spaceships" component={SpaceshipsScreen} />
+    </Drawer.Navigator>
+  );
+}
+
+export default function App() {
+  return (
+    <NavigationContainer>
+      {Platform.OS === 'ios' ? <Tabs /> : <Drawers />}
+    </NavigationContainer>
+  );
+}
