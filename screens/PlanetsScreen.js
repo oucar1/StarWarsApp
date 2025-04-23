@@ -8,7 +8,28 @@ import {
   TextInput,
   Modal,
   Button,
+  Animated,
 } from 'react-native';
+
+// Animated component for each planet item
+const PlanetItem = ({ item, index }) => {
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 600,
+      delay: index * 100, // Each planet appears with a delay
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  return (
+    <Animated.View style={[styles.item, { opacity: fadeAnim }]}>
+      <Text style={styles.name}>{item.name}</Text>
+    </Animated.View>
+  );
+};
 
 export default function PlanetsScreen() {
   const [planets, setPlanets] = useState([]);
@@ -21,7 +42,11 @@ export default function PlanetsScreen() {
     fetch("https://www.swapi.tech/api/planets")
       .then((res) => res.json())
       .then((data) => {
-        setPlanets(data.results);
+        const results = data.result || data.results;
+        const extracted = results.map((item) =>
+          item.properties ? item.properties : item
+        );
+        setPlanets(extracted);
         setLoading(false);
       })
       .catch((err) => {
@@ -35,10 +60,8 @@ export default function PlanetsScreen() {
     setModalVisible(true);
   };
 
-  const renderItem = ({ item }) => (
-    <View style={styles.item}>
-      <Text style={styles.name}>{item.name}</Text>
-    </View>
+  const renderItem = ({ item, index }) => (
+    <PlanetItem item={item} index={index} />
   );
 
   return (
@@ -63,11 +86,11 @@ export default function PlanetsScreen() {
       </Modal>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#00ff00" />
+        <ActivityIndicator size="large" color="#3b82f6" />
       ) : (
         <FlatList
           data={planets}
-          keyExtractor={(item) => item.uid}
+          keyExtractor={(item, index) => index.toString()}
           renderItem={renderItem}
         />
       )}
@@ -90,10 +113,10 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   item: {
-    backgroundColor: '#eee',
+    backgroundColor: '#dbeafe',
     padding: 15,
     marginVertical: 8,
-    borderRadius: 8,
+    borderRadius: 12,
   },
   name: {
     fontSize: 18,

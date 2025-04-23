@@ -1,5 +1,34 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  Animated,
+} from 'react-native';
+
+// Animated component for each film item
+const FilmItem = ({ item, index }) => {
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 600,
+      delay: index * 100, // Each film appears with a delay
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  return (
+    <Animated.View style={[styles.item, { opacity: fadeAnim }]}>
+      <Text style={styles.title}>{item.title}</Text>
+      <Text style={styles.subtitle}>Director: {item.director}</Text>
+      <Text style={styles.subtitle}>Release: {item.release_date}</Text>
+    </Animated.View>
+  );
+};
 
 export default function FilmsScreen() {
   const [films, setFilms] = useState([]);
@@ -9,7 +38,11 @@ export default function FilmsScreen() {
     fetch("https://www.swapi.tech/api/films")
       .then((res) => res.json())
       .then((data) => {
-        setFilms(data.result || data.results);
+        const results = data.result || data.results;
+        const extracted = results.map((item) =>
+          item.properties ? item.properties : item
+        );
+        setFilms(extracted);
         setLoading(false);
       })
       .catch((err) => {
@@ -18,22 +51,18 @@ export default function FilmsScreen() {
       });
   }, []);
 
-  const renderItem = ({ item }) => (
-    <View style={styles.item}>
-      <Text style={styles.title}>{item.properties?.title}</Text>
-      <Text style={styles.subtitle}>Director: {item.properties?.director}</Text>
-      <Text style={styles.subtitle}>Release: {item.properties?.release_date}</Text>
-    </View>
+  const renderItem = ({ item, index }) => (
+    <FilmItem item={item} index={index} />
   );
 
   return (
     <View style={styles.container}>
       {loading ? (
-        <ActivityIndicator size="large" color="#aa00ff" />
+        <ActivityIndicator size="large" color="#3b82f6" />
       ) : (
         <FlatList
           data={films}
-          keyExtractor={(item) => item.uid}
+          keyExtractor={(item, index) => index.toString()}
           renderItem={renderItem}
         />
       )}
@@ -48,10 +77,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   item: {
-    backgroundColor: '#f1f1f1',
+    backgroundColor: '#dbeafe', // Light blue for consistency
     padding: 15,
     marginVertical: 8,
-    borderRadius: 8,
+    borderRadius: 12, // Rounded corners
   },
   title: {
     fontSize: 18,
