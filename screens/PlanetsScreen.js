@@ -9,9 +9,9 @@ import {
   Modal,
   Button,
   Animated,
+  Image,
 } from 'react-native';
 
-// Animated component for each planet item
 const PlanetItem = ({ item, index }) => {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
@@ -19,14 +19,20 @@ const PlanetItem = ({ item, index }) => {
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 600,
-      delay: index * 100, // Each planet appears with a delay
+      delay: index * 100,
       useNativeDriver: true,
     }).start();
   }, []);
 
   return (
     <Animated.View style={[styles.item, { opacity: fadeAnim }]}>
-      <Text style={styles.name}>{item.name}</Text>
+      <View style={styles.planetRow}>
+        <Image
+          source={require('../assets/images/planet.png')}
+          style={styles.icon}
+        />
+        <Text style={styles.name}>{item.name}</Text>
+      </View>
     </Animated.View>
   );
 };
@@ -66,6 +72,11 @@ export default function PlanetsScreen() {
 
   return (
     <View style={styles.container}>
+      <Image
+        source={require('../assets/images/starwars.jpg')}
+        style={styles.headerLogo}
+      />
+
       <TextInput
         style={styles.input}
         placeholder="Search planets..."
@@ -104,6 +115,13 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingHorizontal: 20,
   },
+  headerLogo: {
+    width: 200,
+    height: 60,
+    resizeMode: 'contain',
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
   input: {
     height: 40,
     borderColor: '#ccc',
@@ -117,6 +135,16 @@ const styles = StyleSheet.create({
     padding: 15,
     marginVertical: 8,
     borderRadius: 12,
+  },
+  planetRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  icon: {
+    width: 30,
+    height: 30,
+    marginRight: 10,
+    resizeMode: 'contain',
   },
   name: {
     fontSize: 18,

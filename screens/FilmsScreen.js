@@ -6,9 +6,10 @@ import {
   StyleSheet,
   ActivityIndicator,
   Animated,
+  Image,
+  TextInput,
 } from 'react-native';
 
-// Animated component for each film item
 const FilmItem = ({ item, index }) => {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
@@ -16,23 +17,33 @@ const FilmItem = ({ item, index }) => {
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 600,
-      delay: index * 100, // Each film appears with a delay
+      delay: index * 100,
       useNativeDriver: true,
     }).start();
   }, []);
 
   return (
     <Animated.View style={[styles.item, { opacity: fadeAnim }]}>
-      <Text style={styles.title}>{item.title}</Text>
-      <Text style={styles.subtitle}>Director: {item.director}</Text>
-      <Text style={styles.subtitle}>Release: {item.release_date}</Text>
+      <View style={styles.row}>
+        <Image
+          source={require('../assets/images/knight.png')}
+          style={styles.icon}
+        />
+        <View>
+          <Text style={styles.title}>{item.title}</Text>
+          <Text style={styles.subtitle}>Director: {item.director}</Text>
+          <Text style={styles.subtitle}>Release: {item.release_date}</Text>
+        </View>
+      </View>
     </Animated.View>
   );
 };
 
 export default function FilmsScreen() {
   const [films, setFilms] = useState([]);
+  const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetch("https://www.swapi.tech/api/films")
@@ -43,6 +54,7 @@ export default function FilmsScreen() {
           item.properties ? item.properties : item
         );
         setFilms(extracted);
+        setFiltered(extracted);
         setLoading(false);
       })
       .catch((err) => {
@@ -51,17 +63,37 @@ export default function FilmsScreen() {
       });
   }, []);
 
+  const handleSearch = (text) => {
+    setSearchTerm(text);
+    const filteredData = films.filter((film) =>
+      film.title.toLowerCase().includes(text.toLowerCase())
+    );
+    setFiltered(filteredData);
+  };
+
   const renderItem = ({ item, index }) => (
     <FilmItem item={item} index={index} />
   );
 
   return (
     <View style={styles.container}>
+      <Image
+        source={require('../assets/images/starwars.jpg')}
+        style={styles.headerLogo}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Search films..."
+        value={searchTerm}
+        onChangeText={handleSearch}
+      />
+
       {loading ? (
         <ActivityIndicator size="large" color="#3b82f6" />
       ) : (
         <FlatList
-          data={films}
+          data={filtered}
           keyExtractor={(item, index) => index.toString()}
           renderItem={renderItem}
         />
@@ -76,11 +108,36 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingHorizontal: 20,
   },
+  headerLogo: {
+    width: 200,
+    height: 60,
+    resizeMode: 'contain',
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  input: {
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    marginBottom: 10,
+    borderRadius: 6,
+  },
   item: {
-    backgroundColor: '#dbeafe', // Light blue for consistency
+    backgroundColor: '#dbeafe',
     padding: 15,
     marginVertical: 8,
-    borderRadius: 12, // Rounded corners
+    borderRadius: 12,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  icon: {
+    width: 40,
+    height: 40,
+    marginRight: 12,
+    resizeMode: 'contain',
   },
   title: {
     fontSize: 18,
