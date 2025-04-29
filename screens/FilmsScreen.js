@@ -9,6 +9,7 @@ import {
   Image,
   TextInput,
 } from 'react-native';
+import NetInfo from '@react-native-community/netinfo';
 
 const FilmItem = ({ item, index }) => {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
@@ -44,8 +45,21 @@ export default function FilmsScreen() {
   const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isConnected, setIsConnected] = useState(true);
 
   useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsConnected(state.isConnected);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!isConnected) {
+      setLoading(false);
+      return;
+    }
+
     fetch("https://www.swapi.tech/api/films")
       .then((res) => res.json())
       .then((data) => {
@@ -61,7 +75,7 @@ export default function FilmsScreen() {
         console.error(err);
         setLoading(false);
       });
-  }, []);
+  }, [isConnected]);
 
   const handleSearch = (text) => {
     setSearchTerm(text);
@@ -74,6 +88,16 @@ export default function FilmsScreen() {
   const renderItem = ({ item, index }) => (
     <FilmItem item={item} index={index} />
   );
+
+  if (!isConnected) {
+    return (
+      <View style={styles.container}>
+        <Text style={{ fontSize: 18, color: 'red', textAlign: 'center', marginTop: 20 }}>
+          No internet connection. Please check your network settings.
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>

@@ -11,6 +11,7 @@ import {
   Animated,
   Image,
 } from 'react-native';
+import NetInfo from '@react-native-community/netinfo';
 
 const PlanetItem = ({ item, index }) => {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
@@ -43,8 +44,22 @@ export default function PlanetsScreen() {
   const [searchTerm, setSearchTerm] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [submittedText, setSubmittedText] = useState('');
+  const [isConnected, setIsConnected] = useState(true);
 
   useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsConnected(state.isConnected);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!isConnected) {
+      setLoading(false);
+      return;
+    }
+
     fetch("https://www.swapi.tech/api/planets")
       .then((res) => res.json())
       .then((data) => {
@@ -59,7 +74,7 @@ export default function PlanetsScreen() {
         console.error(err);
         setLoading(false);
       });
-  }, []);
+  }, [isConnected]);
 
   const handleSearch = () => {
     setSubmittedText(searchTerm);
@@ -69,6 +84,16 @@ export default function PlanetsScreen() {
   const renderItem = ({ item, index }) => (
     <PlanetItem item={item} index={index} />
   );
+
+  if (!isConnected) {
+    return (
+      <View style={styles.container}>
+        <Text style={{ fontSize: 18, color: 'red', textAlign: 'center', marginTop: 20 }}>
+          No internet connection. Please check your network settings.
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
