@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,9 +10,12 @@ import {
   TextInput,
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
+import { Swipeable } from 'react-native-gesture-handler';
+import { useNavigation } from '@react-navigation/native';
 
 const FilmItem = ({ item, index }) => {
-  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const navigation = useNavigation();
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -23,20 +26,33 @@ const FilmItem = ({ item, index }) => {
     }).start();
   }, []);
 
+  const handleSwipe = () => {
+    navigation.navigate('FilmDetails', { film: item });
+  };
+
   return (
-    <Animated.View style={[styles.item, { opacity: fadeAnim }]}>
-      <View style={styles.row}>
-        <Image
-          source={require('../assets/images/knight.png')}
-          style={styles.icon}
-        />
-        <View>
-          <Text style={styles.title}>{item.title}</Text>
-          <Text style={styles.subtitle}>Director: {item.director}</Text>
-          <Text style={styles.subtitle}>Release: {item.release_date}</Text>
+    <Swipeable
+      renderRightActions={() => (
+        <View style={{ backgroundColor: '#facc15', justifyContent: 'center', padding: 20 }}>
+          <Text style={{ fontWeight: 'bold' }}>Details →</Text>
         </View>
-      </View>
-    </Animated.View>
+      )}
+      onSwipeableRightOpen={handleSwipe}
+    >
+      <Animated.View style={[styles.item, { opacity: fadeAnim }]}>
+        <View style={styles.row}>
+          <Image
+            source={require('../assets/images/knight.png')}
+            style={styles.icon}
+          />
+          <View>
+            <Text style={styles.title}>{item.title}</Text>
+            <Text style={styles.subtitle}>Director: {item.director}</Text>
+            <Text style={styles.subtitle}>Release: {item.release_date}</Text>
+          </View>
+        </View>
+      </Animated.View>
+    </Swipeable>
   );
 };
 
